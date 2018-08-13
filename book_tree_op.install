@@ -1,0 +1,6 @@
+<?php 
+
+function book_tree_op_install() {
+  $_book_tree_op_child_unpblish = variable_get('book_tree_op_child_unpblish', TRUE);
+  variable_set('book_tree_op_child_unpblish', $_book_tree_op_child_unpblish);  
+}

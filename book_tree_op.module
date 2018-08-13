@@ -2,11 +2,16 @@
 
 function book_tree_op_node_update($node) {
   if($node->type == 'book') {
-  
+    $_book_tree_op_child_unpblish = variable_get('book_tree_op_child_unpblish', TRUE);
+    //All child unpublish operations goes here
+    if($_book_tree_op_child_unpblish && !$node->status) {
+      //_book_tree_op_child_unpublish($node);
+    }
   }
 }
 
 //Unpublish all the nodes
+//@todo update the revision table later
 function _book_tree_op_child_unpublish(&$node) {
   //Get all the childs
   $child_tree = _book_tree_op_get_child_nids($node);
@@ -16,9 +21,6 @@ function _book_tree_op_child_unpublish(&$node) {
     }
     entity_get_controller('node')->resetCache($child_tree);
   }
-  //For each child, unpublish node and its revisions
-  //Clear all the node cache. 
-
 }
 
 /**
@@ -51,6 +53,5 @@ function _book_tree_op_get_child_nids(&$node) {
       }
     }
   }
-  
   return $children;
 }
