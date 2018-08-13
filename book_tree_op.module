@@ -1,11 +1,13 @@
 <?php
 
+// Hook node update
 function book_tree_op_node_update($node) {
-  if($node->type == 'book') {
+  $book_types = variable_get('book_allowed_types', array('book'));
+  if(in_array($node->type,$book_types)) {
     $_book_tree_op_child_unpblish = variable_get('book_tree_op_child_unpblish', TRUE);
     //All child unpublish operations goes here
     if($_book_tree_op_child_unpblish && !$node->status) {
-      //_book_tree_op_child_unpublish($node);
+      _book_tree_op_child_unpublish($node);
     }
   }
 }
@@ -15,9 +17,13 @@ function book_tree_op_node_update($node) {
 function _book_tree_op_child_unpublish(&$node) {
   //Get all the childs
   $child_tree = _book_tree_op_get_child_nids($node);
-  if($child_tree && count($$child_tree)) {
+  if($child_tree && count($child_tree)) {
     foreach($child_tree as $_nid) {
-      db_query("UPDATE {node} SET `status` = '1' WHERE `nid` =:nid ;",array(':nid'=>$_nid));
+      db_query("UPDATE {node} SET `status` = 0 WHERE `nid` =:nid ;",array(':nid'=>$_nid));
+      $vid = db_query("select vid from {node} WHERE `nid` =:nid ;",array(':nid'=>$_nid))->fetchField();
+      if(intval($vid)) {
+        db_query("UPDATE {node_revision} SET `status` = 0 WHERE `nid` =:nid  AND  `vid` =:vid;",array(':nid'=>$_nid,'vid'=> $vid));
+      }
     }
     entity_get_controller('node')->resetCache($child_tree);
   }
