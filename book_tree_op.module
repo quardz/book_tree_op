@@ -1,0 +1,56 @@
+<?php
+
+function book_tree_op_node_update($node) {
+  if($node->type == 'book') {
+  
+  }
+}
+
+//Unpublish all the nodes
+function _book_tree_op_child_unpublish(&$node) {
+  //Get all the childs
+  $child_tree = _book_tree_op_get_child_nids($node);
+  if($child_tree && count($$child_tree)) {
+    foreach($child_tree as $_nid) {
+      db_query("UPDATE {node} SET `status` = '1' WHERE `nid` =:nid ;",array(':nid'=>$_nid));
+    }
+    entity_get_controller('node')->resetCache($child_tree);
+  }
+  //For each child, unpublish node and its revisions
+  //Clear all the node cache. 
+
+}
+
+/**
+ * Find which are the children nodes of a book node.
+ * @param object
+ *   Book link ($node->book)
+ * @return array
+ *   An array of node id
+ */
+function _book_tree_op_get_child_nids(&$node) {
+  $book_link = FALSE;
+  if($node && isset($node->book) && $node->book) {
+    $book_link = $node->book;
+  }
+  if(!$book_link) {
+    return FALSE;
+  }
+  $flat = book_get_flat_menu($book_link);
+  $children = array();
+  if ($book_link['has_children']) {
+    // Walk through the array until we find the current page.
+    do {
+      $link = array_shift($flat);
+    } while ($link && ($link['mlid'] != $book_link['mlid']));
+    // Continue though the array and collect the links whose parent is this page.
+    while (($link = array_shift($flat)) && $link['plid'] == $book_link['mlid']) {
+      $matches = array();
+      if (preg_match('/^node\/([\d]+)$/', $link['href'], $matches)) {
+        $children[] = $matches[1];
+      }
+    }
+  }
+  
+  return $children;
+}
